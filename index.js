@@ -13,5 +13,5 @@ app.use(parserMiddleware)
 
 app.use(userRouter)
 
-const port = 4000;
+port = 4000;
 app.listen(port, () => console.log(`Listening to port ${port}`))
