@@ -5,6 +5,28 @@ const { toJWT, toData} = require('./jwt')
 
 const router = new Router()
 
+router.post('/signup', (req, res) => {
+  const username =  req.body.username
+  const email = req.body.email
+  const password = req.body.password
+
+  if (!email || !password || !username) {
+      res.status(400).send({
+          message: 'Please fill out all details'
+      })
+  } else {
+      User.create({
+          username: req.body.username,
+          email: req.body.email,
+          password: bcrypt.hashSync(req.body.password, 10)
+      })
+          .then((user) => {
+              res.status(200).send({
+                  status: "Your SignUp is successful!!"
+              })
+          })
+  }
+})
 router.post('/login', (req, res) => {
     const email = req.body.email
     const password = req.body.password
@@ -15,9 +37,6 @@ router.post('/login', (req, res) => {
       })
     }
     else {
-      // 1. find user based on email address
-      // 2. use bcrypt.compareSync to check the password against the stored hash
-      // 3. if the password is correct, return a JWT with the userId of the user (user.id)
     User  
     .findOne({
         where: {
