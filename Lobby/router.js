@@ -32,36 +32,42 @@ router.put("/lobby/:id", auth, async (request, response) => {
   const auth =
     request.headers.authorization && request.headers.authorization.split(" ");
   if (auth && auth[0] === "Bearer" && auth[1]) {
-    const tempId = toData(auth[1]);
-    console.log("userId", tempId.userId);
+    const playerId = toData(auth[1]);
+    console.log("userId", playerId.userId);
     const entity = await Lobby.findByPk(request.params.id);
     console.log("checking entity", entity);
     //const { id, player1, player2, status } = JSON.stringify(entity)
     const { id, player1, player2, status } = entity.dataValues;
     console.log("checking values", id, player1, player2, status);
     if (status === "Waiting for players") {
-      Lobby.update( { player1: tempId.userId, status: "Waiting for player2" },{
+      Lobby.update(
+        { player1: playerId.userId, status: "Waiting for player2" },
+        {
           where: {
             id: request.params.id
           }
         }
       );
     }
-    if (status === "Waiting for player2" && player1!==null) {
-        Lobby.update( { player2: tempId.userId, status: "full" },{
-            where: {
-              id: request.params.id
-            }
+    if (status === "Waiting for player2" && player1 !== null) {
+      Lobby.update(
+        { player2: playerId.userId, status: "full" },
+        {
+          where: {
+            id: request.params.id
           }
-        );
-      }
+        }
+      );
     }
-    const lobby = Lobby.findAll();
-    const data = JSON.stringify(lobby);
-    stream.send(data);
-    response.status('Join OK');
-    response.send("Thanks for joining the  lobby");
-  })
+    if (status === "full") {
+      response.send("Please create another lobby");
+    }
+  }
 
+  const lobby = Lobby.findAll();
+  const data = JSON.stringify(lobby);
+  stream.send(data);
+  response.send("Thanks for joining the  lobby");
+});
 
 module.exports = router;
