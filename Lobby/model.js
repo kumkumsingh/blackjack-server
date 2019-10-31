@@ -1,25 +1,12 @@
 const Sequelize = require('sequelize')
 const db = require('../db')
+const Hand = require('../Hand/model')
 const Lobby = db.define('Lobby',{
 
     roomName : {
-        
+
         type: Sequelize.STRING,
 
-    },
-    player1 : {
-        type: Sequelize.INTEGER,
-    },
-    player2 : {
-      
-        type: Sequelize.INTEGER,
-    },
-    hand1_Id :{
-        type: Sequelize.STRING,
-       
-    },
-    hand2_Id :{
-        type: Sequelize.STRING,
     },
     winner :{
         type: Sequelize.STRING,
@@ -30,6 +17,7 @@ const Lobby = db.define('Lobby',{
     }
 
 })
-//Hand.belongsTo(Lobby)
-//Room.hasMany(Hand)
+// Hand.belongsTo(Lobby, { as: 'hand1', constraints: false })
+// Hand.belongsTo(Lobby, { as: 'hand2', constraints: false })
+
 module.exports = Lobby
