@@ -6,5 +6,5 @@ module.exports = () => {
     const randomSuit = suits[Math.trunc(Math.random() * suits.length)].split('')[0]
     const randomValue = values[Math.trunc(Math.random()* values.length)]
 
-    return `${randomSuit}${randomValue}` //we get a string eg: "5H", "4C"
+    return [`${randomSuit}${randomValue}`, randomValue] //we get a string eg: "5H", "4C"
 }

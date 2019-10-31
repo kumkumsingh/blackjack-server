@@ -19,6 +19,10 @@ const Hand = db.define('hand', {
     c5: {
         type: Sequelize.STRING,
         allownull: false
+    },
+    score: {
+        type: Sequelize.INTEGER,
+        allownull: false
     }
 })
 

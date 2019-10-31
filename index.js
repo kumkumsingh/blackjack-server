@@ -27,13 +27,21 @@ db
     .sync({force:true})
     .then(() => console.log("Database connected"))
     .then(() => {
-        
+
+        const row1C1 = random()
+        const row1C2 = random()
+        const row2C1 = random()
+        const row2C2 = random()
+
         const players = [
-            {c1: random(), c2: random()},
-            {c1: random(), c2: random()}
+            {c1: row1C1[0], c2: row1C2[0], score: row1C1[1] + row1C2[1]},
+            {c1: row2C1[0], c2: row2C2[0], score: row2C1[1] + row2C2[1]}
         ]
 
-        const playerPromises = players.map(player => Hand.create(player))
+        const playerPromises = players.map(player => {
+            
+            return Hand.create(player)
+        })
         return Promise.all(playerPromises)
 
     })
