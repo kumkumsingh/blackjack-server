@@ -3,9 +3,8 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 const userRouter = require('./User/router')
 const handRouter = require('./Hand/router')
-const Hand = require('./Hand/model')
-const random = require('./random')
-const db = require('./db')
+const lobbyRouter = require('./Lobby/router')
+
 
 const app = express()
 
@@ -16,6 +15,7 @@ const parserMiddleware = bodyParser.json()
 app.use(parserMiddleware)
 
 app.use(userRouter)
+app.use(lobbyRouter)
 app.use(handRouter)
 
 port = 4000;
@@ -23,28 +23,9 @@ port = 4000;
 app.listen(port, () => console.log(`Listening to port ${port}`))
 
 //hand table 
-db
-    .sync({force:true})
-    .then(() => console.log("Database connected"))
-    .then(() => {
-
-        const row1C1 = random()
-        const row1C2 = random()
-        const row2C1 = random()
-        const row2C2 = random()
-
-        const players = [
-            {c1: row1C1[0], c2: row1C2[0], score: row1C1[1] + row1C2[1]},
-            {c1: row2C1[0], c2: row2C2[0], score: row2C1[1] + row2C2[1]}
-        ]
-
-        const playerPromises = players.map(player => {
-            
-            return Hand.create(player)
-        })
-        return Promise.all(playerPromises)
-
-    })
-    .catch(console.error)
+// db
+//     .sync({force:true})
+//     .then(() => console.log("Database connected"))
+//     .catch(console.error)
 
 
