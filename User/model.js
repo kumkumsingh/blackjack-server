@@ -18,8 +18,8 @@ const User = db.define('user', {
     }
 })
 User.belongsTo(Lobby)
-User.hasOne(Hand)
 Hand.belongsTo(User)
+User.hasMany(Hand)
 Lobby.hasMany(User)
 
 module.exports = User;

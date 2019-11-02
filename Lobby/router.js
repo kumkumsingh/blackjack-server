@@ -1,97 +1,97 @@
 const { Router } = require("express");
-const Lobby = require("../Lobby/model");
+const Lobby = require("./model");
 const Sse = require("json-sse");
 const stream = new Sse();
 const router = new Router();
 const auth = require("../User/authMiddleware");
-const { toJWT, toData } = require("../User/jwt");
-const User = require("../User/model");
-const Hand = require("../Hand/model");
+const User = require('../User/model')
+const Hand = require('../Hand/model')
 
-router.get("/stream", async (request, response) => {
-  console.log("got a request on /stream");
-  const room = await Lobby.findAll();
-  const data = JSON.stringify(room);
-  console.log("stringified data", data);
-  stream.updateInit(data); // here i put the data in the stream
-  stream.init(request, response); //this is important !!!
+
+router.get("/lobby", async (request, response) => {
+    console.log("got a request on /stream");
+    const room = await Lobby.findAll({
+        include: [
+            {
+                model: User,
+                include: [
+                    { model: Hand }
+                ]
+            }
+        ]
+    });
+    response.send(room)
 });
 
 router.post("/lobby", async (request, response) => {
-  const roomName = request.body.roomName;
-  const entity = await Lobby.create({
-    roomName,
-    status: "Waiting for players"
-  });
-  const lobby = Lobby.findAll();
-  const data = JSON.stringify(lobby);
-  stream.send(data);
-  response.status(201);
-  response.send("Thanks for creating lobby");
+    const roomName = request.body.roomName;
+    const entity = await Lobby.create({
+        roomName,
+        status: "Waiting for players"
+    });
+                      
+    response.status(200).send(entity);
 });
 
-router.put("/lobby/:id", auth, async (request, response) => {
-  const entity = await Lobby.findByPk(request.params.id, {
-    include: [
-      {
-        model: User,
-        include: [{ model: Hand }]
-      }
-    ]
-  })
-    .then(result => {
-      console.log("checking entity", result);
-      const { id, status } = result.dataValues;
-      console.log("checking values", id, status);
-      if (status === "Waiting for players") {
-        Lobby.update(
-          { status: "Waiting for player2" },
-          {
-            where: {
-              id: request.params.id
-            }
-          }
-        )
-      } else if (status === "Waiting for player2") {
-        Lobby.update(
-          { status: "full" },
-          {
-            where: {
-              id: request.params.id
-            }
-          }
-        )
-      } else if (status === "full") {
-        response.send("Please create another lobby");
-      }
-    })
 
-});
 
-router.put("/game/join/:roomId", auth, async (req, res, next) => {
-  try {
-    const { roomId } = req.params;
-    const lobby = await Lobby.findByPk(req.params.id);
+//if user wants to join specific room
+router.put('/game/:roomId', auth, async (request, response, next) => {
+    try {
+        // console.log("checking id..", req.params.roomId)
+        const room = request.params.roomId
+        const lobby = await Lobby.findByPk(room)
+        // console.log("req.user is", request.user)
+        // console.log("request body of lobby table", lobby.dataValues.id, "status", lobby.dataValues.status)
+        //updating user LobbyId column based on whcih room he wants to join
+        const updated = await request.user.update({ LobbyId: room })
+        const status = lobby.dataValues.status
+        // console.log("status check", status)
 
-    const updated = await req.user.update({ LobbyId: roomId });
+        if(status==="Waiting for players"){
+            Lobby.update({
+                status: "waiting for player2"
+            },{
+                where: {
+                    id: request.params.roomId
+                }
+            })
+        } else if(status==="waiting for player2"){
+            Lobby.update({
+                status: "Its full"
+            },{
+                where: {
+                    id: request.params.roomId
+                }
+            })
+        } else {
+            //response.status(400).send("Please create another room")
+            response.status(400).end("Please create another room")
+        }
 
-    res.send(updated);
-  } catch (error) {
-    next(error);
-  }
-});
+        response.send(updated)
+    } catch(error) {
 
-router.get("/test/:roomId", (req, res, next) => {
-  Lobby.findByPk(req.params.roomId, {
-    include: [
-      {
-        model: User,
-        include: [{ model: Hand }]
-      }
-    ]
-  }).then(result => {
-    res.send(result);
-  });
+        next(error)
+    }
+})
+
+//testing purpose
+router.get('/test/:roomId', (req, res, next) => {
+    Lobby.findByPk(req.params.roomId,
+        {
+            include: [
+                {
+                    model: User,
+                    include: [
+                        { model: Hand }
+                    ]
+                }
+            ]
+        })
+        .then(result => {
+            res.send(result)
+        })
 });
 module.exports = router;
 
@@ -100,7 +100,7 @@ module.exports = router;
 // Result:
 
 // const lobby = {
-//     id: 1,
+//     id: 2,
 //     roomName: 'test',
 //     (users): [
 //         {
